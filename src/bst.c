@@ -18,6 +18,8 @@ struct node;
  *
  */
 typedef struct node node_t;
+typedef struct bnode bnode_t;
+typedef struct bstack bstack_t;
 
 struct tree {
 	node_t *root;
@@ -29,7 +31,7 @@ struct node {
 	void *elem;
 	node_t *left;
 	node_t *right;
-	node_t *iternext;
+	node_t *parent;
 };
 
 /**
@@ -48,7 +50,7 @@ static node_t *newnode(void *elem)
 	node->elem = elem;
 	node->right = NULL;
 	node->left =NULL;
-	node->iternext =NULL;
+	node->parent =NULL;
 
 	return node;
 }
@@ -129,6 +131,7 @@ int tree_add(tree_t *tree, void *elem)
 			// assign value to a new node on its left.
 			if (!curr->left) {
 				curr->left = newnode(elem);
+				curr->left->parent = curr;
 				tree->size++;
 				return 1;
 			}
@@ -146,6 +149,7 @@ int tree_add(tree_t *tree, void *elem)
 			// it does not have one.
 			if (!curr->right) {
 				curr->right = newnode(elem);
+				curr->right->parent = curr;
 				tree->size++;
 				return 1;
 			}
@@ -160,37 +164,58 @@ int tree_add(tree_t *tree, void *elem)
 	return 0;
 }
 
-node_t *stack[1000];
-node_t **stack_p;
-
-#define push(stack_p, node) (*((stack_p)++) = (node))
-#define pop(stack_p) (*(--(stack_p)))
-
+/**
+* @brief Datatype implementation of tree_iter_t.
+*
+*/
 struct tree_iter
 {
-	void *root;
+	node_t *current;
+	node_t *rightmost;
 };
 
-// IDEA: Add an extra field to the node_t struct that contains the next
-//       sorted element in an iterable sense. I see that it is not
-//       possible to do what was originally planned by using void
-//       pointers to create an array for the elements as there is no
-//       way to get the type and thereby size of each element.
-
+/**
+ * @brief Get the leftmost node beneath @param root.
+ *
+ * @param root 
+ * @return leftmost node.
+ */
 static node_t *node_leftmost(node_t *root)
 {
 	node_t *curr = root;
 
-	stack_p = stack;
-
-	while (curr) {
-		push(stack_p, curr);
+	while (curr->left) {
 		curr = curr->left;
 	}
 
 	return curr;
 }
 
+/**
+ * @brief Get the next node after the input node.
+ *
+ * @param node 
+ * @return node
+ */
+static node_t *node_getnext(node_t *node)
+{
+	if (node->right) {
+		return node_leftmost(node->right);
+	}
+
+	while (node->parent && node == node->parent->right) {
+		node = node->parent;
+	}
+
+	return node->parent;
+}
+
+/**
+ * @brief Create a iter to iterate over the input tree.
+ *
+ * @param tree 
+ * @return iter
+ */
 tree_iter_t *tree_createiter(tree_t *tree)
 {
 	tree_iter_t *iter = malloc(sizeof(tree_iter_t));
@@ -198,12 +223,59 @@ tree_iter_t *tree_createiter(tree_t *tree)
 	if (!iter)
 		ERROR_PRINT("tree_createiter: Malloc failed!");
 
-	iter->root = tree->root;
+	iter->current = node_leftmost(tree->root);
+	
+	node_t *curr = iter->current;
+
+	while (curr->right) {
+		curr = curr->right;
+	}
+
+	iter->rightmost = curr;
 
 	return iter;
 }
 
-// char *get_leftmost(tree_t *tree)
-// {
-// 	return (char *)node_leftmost(tree->root);
-// }
+/**
+ * @brief Free the given iter.
+ *
+ * @param iter 
+ */
+void tree_destroyiter(tree_iter_t *iter)
+{
+	free(iter);
+}
+
+/**
+ * @brief Check if current iter has a next value.
+ *
+ * @param iter 
+ * @return 
+ */
+int tree_hasnext(tree_iter_t *iter)
+{
+	if (iter->current == NULL)
+		return 0;
+	return 1;
+}
+
+/**
+ * @brief Returns the next element in the binary tree.
+ *
+ * @param iter 
+ * @return elem
+ */
+void *tree_next(tree_iter_t *iter)
+{
+	node_t *used = iter->current;
+
+	iter->current = node_getnext(used);
+
+	if (iter->current == used) {
+		iter->current = NULL;
+		return NULL;
+	}
+
+	return used->elem;
+}
+
