@@ -9,6 +9,7 @@
 #include "printing.h"
 #include <stdlib.h>
 
+
 struct node;
 
 /**
@@ -28,8 +29,8 @@ struct node {
 	void *elem;
 	node_t *left;
 	node_t *right;
+	node_t *iternext;
 };
-
 
 /**
  * @brief Create a new node.
@@ -47,6 +48,7 @@ static node_t *newnode(void *elem)
 	node->elem = elem;
 	node->right = NULL;
 	node->left =NULL;
+	node->iternext =NULL;
 
 	return node;
 }
@@ -158,10 +160,15 @@ int tree_add(tree_t *tree, void *elem)
 	return 0;
 }
 
+node_t *stack[1000];
+node_t **stack_p;
+
+#define push(stack_p, node) (*((stack_p)++) = (node))
+#define pop(stack_p) (*(--(stack_p)))
+
 struct tree_iter
 {
-	node_t *root;
-	void *start;
+	void *root;
 };
 
 // IDEA: Add an extra field to the node_t struct that contains the next
@@ -169,6 +176,20 @@ struct tree_iter
 //       possible to do what was originally planned by using void
 //       pointers to create an array for the elements as there is no
 //       way to get the type and thereby size of each element.
+
+static node_t *node_leftmost(node_t *root)
+{
+	node_t *curr = root;
+
+	stack_p = stack;
+
+	while (curr) {
+		push(stack_p, curr);
+		curr = curr->left;
+	}
+
+	return curr;
+}
 
 tree_iter_t *tree_createiter(tree_t *tree)
 {
@@ -181,3 +202,8 @@ tree_iter_t *tree_createiter(tree_t *tree)
 
 	return iter;
 }
+
+// char *get_leftmost(tree_t *tree)
+// {
+// 	return (char *)node_leftmost(tree->root);
+// }

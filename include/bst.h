@@ -22,3 +22,6 @@ void tree_destroyiter(tree_iter_t *iter);
 int tree_hasnext(tree_iter_t *iter);
 
 void *tree_next(tree_iter_t *iter);
+
+// REMOVE
+// char *get_leftmost(tree_t *tree);
