@@ -147,12 +147,12 @@ int tree_find(tree_t *tree, void *elem)
 			return 1;
 		}
 
-		if (cmpval < 0) {
+		if (cmpval > 0) {
 			INFO_PRINT("tree_find: Accessing left subtree.\n");
 			curr = curr->left;
 			continue;
 		} 
-		if (cmpval > 0) {
+		if (cmpval < 0) {
 			INFO_PRINT("tree_find: Accessing right subtree.\n");
 			curr = curr->right;
 			continue;
@@ -181,7 +181,7 @@ int tree_add(tree_t *tree, void *elem)
 		depth++;
 
 		// Indication to move to the left side of current node.
-		if (cmpval < 0) {
+		if (cmpval > 0) {
 
 			// If left node exist, go to left node and
 			// start loop over again.
@@ -201,7 +201,7 @@ int tree_add(tree_t *tree, void *elem)
 		}
 
 		// Indicate to move to the left side of the current node.
-		if (cmpval > 0) {
+		if (cmpval < 0) {
 
 			if (curr->right) {
 
@@ -224,9 +224,9 @@ int tree_add(tree_t *tree, void *elem)
 }
 
 /**
-* @brief Datatype implementation of tree_iter_t.
-*
-*/
+ * @brief Datatype implementation of tree_iter_t.
+ *
+ */
 struct tree_iter
 {
 	node_t *current;
@@ -241,13 +241,13 @@ struct tree_iter
  */
 static node_t *node_leftmost(node_t *root)
 {
-	node_t *curr = root;
+	node_t *leftmost = root;
 
-	while (curr->left) {
-		curr = curr->left;
+	while (leftmost->left) {
+		leftmost = leftmost->left;
 	}
 
-	return curr;
+	return leftmost;
 }
 
 /**
@@ -300,16 +300,27 @@ tree_iter_t *tree_createiter(tree_t *tree)
 	if (!iter)
 		ERROR_PRINT("tree_createiter: Malloc failed!\n");
 
+	// If the root of the tree is not defined, return an empty iterator.
+	if (!tree->root) {
+		iter->current = NULL;
+		return iter;
+	}
+
 	// Start with the node that has the smallest value.
 	iter->current = node_leftmost(tree->root);
 	
-	node_t *curr = iter->current;
+	node_t *rightmost = iter->current;
 
-	while (curr->right) {
-		curr = curr->right;
+	/**
+	 * Get the rightmost element of the tree.
+	 * This will act as a natural last element, and
+	 * stop condition for the iterator.
+	 */
+	while (rightmost->right) {
+		rightmost = rightmost->right;
 	}
 
-	iter->rightmost = curr;
+	iter->rightmost = rightmost;
 
 	INFO_PRINT("tree_createiter: Tree iterator successfully created\n.");
 	return iter;
