@@ -14,7 +14,7 @@ ASSERT_SRC:=$(patsubst %.c,src/%.c, $(ASSERT_SRC))
 TEST_SRC:=$(patsubst %.c,src/%.c, $(TEST_SRC))
 
 CFLAGS=-Wall -Wextra -g -Wpedantic
-LDFLAGS=-lm -DLOG_LEVEL=1 -DERROR_FATAL
+LDFLAGS=-lm -DLOG_LEVEL=0 -DERROR_FATAL
 
 all: spamfilter numbers
 
