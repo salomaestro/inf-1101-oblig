@@ -8,10 +8,12 @@ BB_SRC=$(BST_SRC) $(SET_BST_SRC) $(LIST_SRC)
 
 SPAMFILTER_SRC=spamfilter.c common.c
 NUMBERS_SRC=numbers.c common.c
+BENCHMARK_SRC=benchmark.c common.c
 ASSERT_SRC=assert_set.c common.c
 
 INCLUDE=include
 
+BENCHMARK_SRC:=$(patsubst %.c,src/%.c, $(BENCHMARK_SRC) $(BB_SRC))
 NUMBERS_SRC:=$(patsubst %.c,src/%.c, $(NUMBERS_SRC) $(BB_SRC))
 SPAMFILTER_SRC:=$(patsubst %.c,src/%.c, $(SPAMFILTER_SRC) $(BB_SRC))
 ASSERT_EZ_SRC:=$(patsubst %.c,src/%.c, $(ASSERT_SRC) $(EZ_SRC))
@@ -28,6 +30,9 @@ spamfilter: $(SPAMFILTER_SRC) Makefile
 numbers: $(NUMBERS_SRC) Makefile
 	gcc -o $@ $(CFLAGS) $(NUMBERS_SRC) -I$(INCLUDE) $(LDFLAGS)
 
+benchmark: $(NUMBERS_SRC) Makefile
+	gcc -o $@ $(CFLAGS) $(BENCHMARK_SRC) -I$(INCLUDE) $(LDFLAGS)
+
 assertez: $(ASSERT_EZ_SRC) Makefile
 	gcc -o $@ $(CFLAGS) $(ASSERT_EZ_SRC) -I$(INCLUDE) $(LDFLAGS)
 
@@ -35,4 +40,4 @@ assertbb: $(ASSERT_BB_SRC) Makefile
 	gcc -o $@ $(CFLAGS) $(ASSERT_BB_SRC) -I$(INCLUDE) $(LDFLAGS)
 
 clean:
-	rm -f *~ *.o *.exe spamfilter numbers assertbb assertez
+	rm -f *~ *.o *.exe spamfilter numbers assertbb assertez benchmark
