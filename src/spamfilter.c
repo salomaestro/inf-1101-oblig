@@ -76,6 +76,19 @@ static void printlist(char *listname, list_t *l)
 	list_destroyiter(it);
 }
 
+static void printlistofsets(char *listname, list_t *l)
+{
+	list_iter_t *it;
+
+	it = list_createiter(l);
+	DEBUG_PRINT("%s: ", listname);
+	while (list_hasnext(it)) {
+		printwords("set", list_next(it));
+	}
+	printf("\n");
+	list_destroyiter(it);
+}
+
 /**
  * @brief Filter out specific items from a directory listing.
  *        Returns 0 for not found and 1 for found.
@@ -95,22 +108,16 @@ static int filter_dirname(char *direntry) {
 	return 0;
 }
 
+/*
 static list_t *listdir(char *dirname) 
 {
 	struct dirent *direntry;
-	list_t *filenames;
+	list_t *wordsetlist;
 	DIR *dr;
-	char *dir_item, *path_prefix, *path, *pos;
+	char *dir_item, path[100];
+	set_t *words;
 
-	path_prefix = malloc(strlen(path) + 2);
-
-	strcpy(path_prefix, dirname);
-
-	pos = path_prefix + strlen(dirname);
-	
-	strcpy(pos, "/");
-
-	filenames = list_create(compare_strings);
+	wordsetlist = list_create(compare_strings);
 
 	dr = opendir(dirname);
 
@@ -122,36 +129,20 @@ static list_t *listdir(char *dirname)
 		dir_item = (char *)direntry->d_name;
 
 		if (!filter_dirname(dir_item)) {
+			strcpy(path, dirname);
+			strcat(path, "/");
+			strcat(path, dir_item);
+
+			words = tokenize(path);
 			
-			path = malloc(strlen(path_prefix) + strlen(dir_item) + 1);
-
-			strcpy(path, path_prefix);
-			pos = path + strlen(path_prefix);
-			strcpy(pos, dir_item);
-
-			DEBUG_PRINT("TEST: %s\n", path);
-			list_addlast(filenames, path);
+			list_addlast(wordsetlist, words);
 		}
 	}
 
 	closedir(dr);
-	printlist(dirname, filenames);
-
-	return filenames;
+	return wordsetlist;
 }
-
-static void droplistitems(list_t *list)
-{
-	void *elem;
-	list_iter_t *it = list_createiter(list);
-
-	while (list_hasnext(it)) {
-		elem = list_next(it);
-		free(elem);
-	}
-
-	list_destroyiter(it);
-}
+*/
 
 /**
  * @brief Get the intersection of words from all files in input
@@ -160,29 +151,29 @@ static void droplistitems(list_t *list)
  * @param files 
  * @return intersection
  */
-static set_t *list_apply_oper(list_t *files, set_oper oper)
+static set_t *list_apply_oper(list_t *wordsets, set_oper oper)
 {
 	void *fname;
 	set_t *wordset, *keywords;
-	list_iter_t *fileiter;
+	list_iter_t *setiter;
 
-	keywords = set_create(compare_words);
-	fileiter = list_createiter(files);
+	DEBUG_PRINT("list_apply_oper: creating iter...\n");
+	printlistofsets("wordset", wordsets);
+	setiter = list_createiter(wordsets);
+	DEBUG_PRINT("list_apply_oper: Created iterator...\n");
 
 	// Get the first set of words.
-	if (list_hasnext(fileiter)) {
-		fname = list_next(fileiter);
-		keywords = tokenize(fname);
+	if (list_hasnext(setiter)) {
+		keywords = (set_t *)list_next(setiter);
 	}
 
 	// Find intersection between all words of all files.
-	while (list_hasnext(fileiter)) {
-		fname = list_next(fileiter);
-		wordset = tokenize(fname);
+	while (list_hasnext(setiter)) {
+		wordset = (set_t *)list_next(setiter);
 		keywords = oper(keywords, wordset);
 	}
 
-	list_destroyiter(fileiter);
+	list_destroyiter(setiter);
 
 	return keywords;
 }
@@ -207,55 +198,50 @@ static set_t *list_apply_oper(list_t *files, set_oper oper)
  */
 static void spamfilter(char *spam, char *nonspam, char *mail)
 {
-	// void *fname;
-	// char *classification;
+	void *fname;
+	char *classification;
 	list_t *spamfiles, *nonspamfiles, *mailfiles;
 	set_t *spamwords, *nonspamwords, *mailwords, *filterset, *result;
-	// list_iter_t *mailiter;
+	list_iter_t *mailiter;
 
-	spamfiles = listdir(spam);
-	// nonspamfiles = listdir(nonspam);
-	// mailfiles = listdir(mail);
+	spamfiles = find_files(spam);
+	nonspamfiles = find_files(nonspam);
+	mailfiles = find_files(mail);
 
-	printlist(spam, spamfiles);
-	// printlist(nonspam, nonspamfiles);
-	// printlist(mail, mailfiles);
+	spamwords = list_apply_oper(spamfiles, set_intersection);
+	nonspamwords = list_apply_oper(nonspamfiles, set_union);
 
-	// spamwords = list_apply_oper(spamfiles, set_intersection);
-	// nonspamwords = list_files_oper(nonspamfiles, set_union);
+	filterset = set_difference(spamwords, nonspamwords);
 
-	// filterset = set_difference(spamwords, nonspamwords);
-	//
-	// mailiter = list_createiter(mailfiles);
-	//
-	// while (list_hasnext(mailiter)) {
-	// 	fname = list_next(mailiter);
-	//
-	// 	mailwords = tokenize(fname);
-	//
-	// 	result = set_intersection(mailwords, filterset);
-	// 	
-	//
-	// 	char *classification = set_size(result) > 0 ? "SPAM" : "Not spam";
-	//
-	// 	printf(
-	// 		"%s: %d spam word(s) -> %s",
-	// 		(char *)fname,
-	// 		set_size(result),
-	// 		classification
-	// 	);
-	// }
-	//
-	// list_destroyiter(mailiter);
-	droplistitems(spamfiles);
+	mailiter = list_createiter(mailfiles);
+
+	while (list_hasnext(mailiter)) {
+		fname = list_next(mailiter);
+
+		mailwords = tokenize(fname);
+
+		result = set_intersection(mailwords, filterset);
+		
+
+		char *classification = set_size(result) > 0 ? "SPAM" : "Not spam";
+
+		printf(
+			"%s: %d spam word(s) -> %s",
+			(char *)fname,
+			set_size(result),
+			classification
+		);
+	}
+
+	list_destroyiter(mailiter);
 	list_destroy(spamfiles);
-	// list_destroy(nonspamfiles);
-	// list_destroy(mailfiles);
-	// set_destroy(filterset);
-	// set_destroy(result);
-	// set_destroy(spamwords);
-	// set_destroy(nonspamwords);
-	// set_destroy(mailwords);
+	list_destroy(nonspamfiles);
+	list_destroy(mailfiles);
+	set_destroy(filterset);
+	set_destroy(result);
+	set_destroy(spamwords);
+	set_destroy(nonspamwords);
+	set_destroy(mailwords);
 }
 
 /*
@@ -278,6 +264,5 @@ int main(int argc, char **argv)
 	DEBUG_PRINT("%s\n",maildir);
 
 	spamfilter(spamdir, nonspamdir, maildir);
-
 	return 0;
 }

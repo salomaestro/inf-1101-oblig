@@ -63,19 +63,19 @@ static node_t *newnode(void *elem)
  */
 static void deletenode(node_t *root)
 {
-	DEBUG_PRINT("deletenode: check !root...\n");
+	INFO_PRINT("deletenode: check !root...\n");
 	if (!root)
 		return;
 
-	DEBUG_PRINT("deletenode: check root->left...\n");
+	INFO_PRINT("deletenode: check root->left...\n");
 	if (root->left)
 		deletenode(root->left);
 
-	DEBUG_PRINT("deletenode: check root->right...\n");
+	INFO_PRINT("deletenode: check root->right...\n");
 	if (root->right)
 		deletenode(root->right);
 
-	DEBUG_PRINT("deletenode: freeing root\n");
+	INFO_PRINT("deletenode: freeing root\n");
 	free(root);
 }
 
@@ -217,7 +217,7 @@ int tree_add(tree_t *tree, void *elem)
 			tree->size++;
 			return 1;
 		}
-		DEBUG_PRINT("tree_add: Element already exist.\n");
+		INFO_PRINT("tree_add: Element already exist.\n");
 		return 2;
 	}
 	return 0;

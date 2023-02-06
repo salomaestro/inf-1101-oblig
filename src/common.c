@@ -11,6 +11,7 @@
 void tokenize_file(FILE *file, list_t *list)
 {
     char *word;
+    int i = 0;
     char buf[101];
     buf[100] = 0;
     
@@ -22,7 +23,9 @@ void tokenize_file(FILE *file, list_t *list)
 	    	word = strdup(buf);
 	    	if (word == NULL)
 				ERROR_PRINT("out of memory");
+                DEBUG_PRINT("tokenize i=%d: %s\n", i, word);
 	    	list_addlast(list, word);
+                i++; 
 		}
     }
 }
