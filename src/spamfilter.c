@@ -6,6 +6,10 @@
 #include "common.h"
 #include "printing.h"
 
+/**
+ * @typedef Typedefinition containing operations on sets which use two
+ * sets as arguments.
+ */
 typedef set_t *(*set_oper) (set_t *, set_t *);
 
 /*
@@ -26,6 +30,7 @@ static set_t *tokenize(char *filename)
 	list_iter_t *it;
 	FILE *f;
 	
+	DEBUG_PRINT("TOKENIZE: %s\n", filename);
 	f = fopen(filename, "r");
 	if (f == NULL) {
 		perror("fopen");
@@ -58,6 +63,19 @@ static void printwords(char *prefix, set_t *words)
 	set_destroyiter(it);
 }
 
+static void printlist(char *listname, list_t *l)
+{
+	list_iter_t *it;
+
+	it = list_createiter(l);
+	DEBUG_PRINT("%s: ", listname);
+	while (list_hasnext(it)) {
+		printf(" %s", (char *)list_next(it));
+	}
+	printf("\n");
+	list_destroyiter(it);
+}
+
 /**
  * @brief Filter out specific items from a directory listing.
  *        Returns 0 for not found and 1 for found.
@@ -70,7 +88,7 @@ static int filter_dirname(char *direntry) {
 	int i, blacklist_tot = 2;
 
 	for (i = 0; i < blacklist_tot; i++) {
-		if (!strcmp(direntry, blacklist[i]))
+		if (!strcmp((char *)direntry, blacklist[i]))
 			return 1;
 	}
 
@@ -82,7 +100,15 @@ static list_t *listdir(char *dirname)
 	struct dirent *direntry;
 	list_t *filenames;
 	DIR *dr;
-	char *dir_item;
+	char *dir_item, *path_prefix, *path, *pos;
+
+	path_prefix = malloc(strlen(path) + 2);
+
+	strcpy(path_prefix, dirname);
+
+	pos = path_prefix + strlen(dirname);
+	
+	strcpy(pos, "/");
 
 	filenames = list_create(compare_strings);
 
@@ -93,16 +119,38 @@ static list_t *listdir(char *dirname)
 	}
 
 	while ((direntry = readdir(dr)) != NULL) {
-		dir_item = direntry->d_name;
+		dir_item = (char *)direntry->d_name;
 
 		if (!filter_dirname(dir_item)) {
-			list_addlast(filenames, dir_item);
+			
+			path = malloc(strlen(path_prefix) + strlen(dir_item) + 1);
+
+			strcpy(path, path_prefix);
+			pos = path + strlen(path_prefix);
+			strcpy(pos, dir_item);
+
+			DEBUG_PRINT("TEST: %s\n", path);
+			list_addlast(filenames, path);
 		}
 	}
-	
+
 	closedir(dr);
+	printlist(dirname, filenames);
 
 	return filenames;
+}
+
+static void droplistitems(list_t *list)
+{
+	void *elem;
+	list_iter_t *it = list_createiter(list);
+
+	while (list_hasnext(it)) {
+		elem = list_next(it);
+		free(elem);
+	}
+
+	list_destroyiter(it);
 }
 
 /**
@@ -112,7 +160,7 @@ static list_t *listdir(char *dirname)
  * @param files 
  * @return intersection
  */
-static set_t *list_files_oper(list_t *files, set_oper oper)
+static set_t *list_apply_oper(list_t *files, set_oper oper)
 {
 	void *fname;
 	set_t *wordset, *keywords;
@@ -159,19 +207,23 @@ static set_t *list_files_oper(list_t *files, set_oper oper)
  */
 static void spamfilter(char *spam, char *nonspam, char *mail)
 {
-	void *fname;
-	char *classification;
+	// void *fname;
+	// char *classification;
 	list_t *spamfiles, *nonspamfiles, *mailfiles;
 	set_t *spamwords, *nonspamwords, *mailwords, *filterset, *result;
-	list_iter_t *mailiter;
+	// list_iter_t *mailiter;
 
 	spamfiles = listdir(spam);
-	nonspamfiles = listdir(nonspam);
-	mailfiles = listdir(mail);
+	// nonspamfiles = listdir(nonspam);
+	// mailfiles = listdir(mail);
 
-	// spamwords = list_files_oper(spamfiles, set_intersection);
+	printlist(spam, spamfiles);
+	// printlist(nonspam, nonspamfiles);
+	// printlist(mail, mailfiles);
+
+	// spamwords = list_apply_oper(spamfiles, set_intersection);
 	// nonspamwords = list_files_oper(nonspamfiles, set_union);
-	//
+
 	// filterset = set_difference(spamwords, nonspamwords);
 	//
 	// mailiter = list_createiter(mailfiles);
@@ -195,9 +247,10 @@ static void spamfilter(char *spam, char *nonspam, char *mail)
 	// }
 	//
 	// list_destroyiter(mailiter);
+	droplistitems(spamfiles);
 	list_destroy(spamfiles);
-	list_destroy(nonspamfiles);
-	list_destroy(mailfiles);
+	// list_destroy(nonspamfiles);
+	// list_destroy(mailfiles);
 	// set_destroy(filterset);
 	// set_destroy(result);
 	// set_destroy(spamwords);
@@ -210,8 +263,6 @@ static void spamfilter(char *spam, char *nonspam, char *mail)
  */
 int main(int argc, char **argv)
 {
-	struct dirent *direntry;
-
 	char *spamdir, *nonspamdir, *maildir;
 	
 	if (argc != 4) {
