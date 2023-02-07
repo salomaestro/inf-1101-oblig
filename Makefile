@@ -15,11 +15,11 @@ INCLUDE=include
 
 BENCHMARK_SRC:=$(patsubst %.c,src/%.c, $(BENCHMARK_SRC) $(EZ_SRC))
 NUMBERS_SRC:=$(patsubst %.c,src/%.c, $(NUMBERS_SRC) $(BB_SRC))
-SPAMFILTER_SRC:=$(patsubst %.c,src/%.c, $(SPAMFILTER_SRC) $(BB_SRC))
+SPAMFILTER_SRC:=$(patsubst %.c,src/%.c, $(SPAMFILTER_SRC) $(EZ_SRC))
 ASSERT_EZ_SRC:=$(patsubst %.c,src/%.c, $(ASSERT_SRC) $(EZ_SRC))
 ASSERT_BB_SRC:=$(patsubst %.c,src/%.c, $(ASSERT_SRC) $(BB_SRC))
 
-CFLAGS=-Wall -Wextra -g -Wpedantic -O0
+CFLAGS=-Wall -Wextra -g -Wpedantic #-O0
 LDFLAGS=-lm -DLOG_LEVEL=1 -DERROR_FATAL
 
 all: spamfilter numbers
