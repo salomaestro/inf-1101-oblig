@@ -158,7 +158,8 @@ static set_t *list_apply_oper(list_t *wordsets, set_oper oper)
 	list_iter_t *setiter;
 
 	DEBUG_PRINT("list_apply_oper: creating iter...\n");
-	printlistofsets("wordset", wordsets);
+	// printlistofsets("wordset", wordsets);
+	DEBUG_PRINT("length: %d\n", list_size(wordsets));
 	setiter = list_createiter(wordsets);
 	DEBUG_PRINT("list_apply_oper: Created iterator...\n");
 

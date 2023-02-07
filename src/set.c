@@ -73,8 +73,8 @@ set_t *set_union(set_t *a, set_t *b)
 {
 
     /* Verify that cmpfunc's are equal. */
-    if (a->cmpfunc != b->cmpfunc)
-        ERROR_PRINT("set_union: Set a and b does not have same cmp function!\n");
+    // if (a->cmpfunc != b->cmpfunc)
+    //     ERROR_PRINT("set_union: Set a and b does not have same cmp function!\n");
 
     /* 
      * Create a new set that will contain the
@@ -112,8 +112,8 @@ set_t *set_union(set_t *a, set_t *b)
 set_t *set_intersection(set_t *a, set_t *b) 
 {
     /* Verify cmpfuncs are equal. */
-    if (a->cmpfunc != b->cmpfunc)
-        ERROR_PRINT("set_intersection: Set a and b does not have same cmp function!\n");
+    // if (a->cmpfunc != b->cmpfunc)
+    //     ERROR_PRINT("set_intersection: Set a and b does not have same cmp function!\n");
 
     /* Create a new set which will be the intersection set. */
     set_t *new_set = set_create(a->cmpfunc);
@@ -143,8 +143,8 @@ set_t *set_intersection(set_t *a, set_t *b)
 
 set_t *set_difference(set_t *a, set_t *b)
 {
-    if (a->cmpfunc != b->cmpfunc)
-        ERROR_PRINT("set_difference: Set a and b does not have same cmp function!\n");
+    // if (a->cmpfunc != b->cmpfunc)
+    //     ERROR_PRINT("set_difference: Set a and b does not have same cmp function!\n");
 
     set_t *new_set = set_create(a->cmpfunc);
 

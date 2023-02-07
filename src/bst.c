@@ -345,6 +345,7 @@ void tree_destroyiter(tree_iter_t *iter)
  */
 int tree_hasnext(tree_iter_t *iter)
 {
+	DEBUG_PRINT("tree_hasnext: starting...\n");
 	if (iter->current == NULL)
 		return 0;
 	return 1;
@@ -358,6 +359,7 @@ int tree_hasnext(tree_iter_t *iter)
  */
 void *tree_next(tree_iter_t *iter)
 {
+	DEBUG_PRINT("tree_next: starting...\n");
 	node_t *used = iter->current;
 
 	iter->current = node_getnext(used);
