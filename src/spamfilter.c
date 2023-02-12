@@ -7,7 +7,7 @@
 #include "printing.h"
 
 /**
- * @typedef Typedefinition containing operations on sets which use two
+ * @typedef Operations on sets which use two
  * sets as arguments.
  */
 typedef set_t *(*set_oper) (set_t *, set_t *);
@@ -63,86 +63,6 @@ static void printwords(char *prefix, set_t *words)
 	set_destroyiter(it);
 }
 
-static void printlist(char *listname, list_t *l)
-{
-	list_iter_t *it;
-
-	it = list_createiter(l);
-	DEBUG_PRINT("%s: ", listname);
-	while (list_hasnext(it)) {
-		printf(" %s", (char *)list_next(it));
-	}
-	printf("\n");
-	list_destroyiter(it);
-}
-
-static void printlistofsets(char *listname, list_t *l)
-{
-	list_iter_t *it;
-
-	it = list_createiter(l);
-	DEBUG_PRINT("%s: ", listname);
-	while (list_hasnext(it)) {
-		printwords("set", list_next(it));
-	}
-	printf("\n");
-	list_destroyiter(it);
-}
-
-/**
- * @brief Filter out specific items from a directory listing.
- *        Returns 0 for not found and 1 for found.
- *
- * @param direntry 
- * @return int
- */
-static int filter_dirname(char *direntry) {
-	char *blacklist[] = {".", ".."};
-	int i, blacklist_tot = 2;
-
-	for (i = 0; i < blacklist_tot; i++) {
-		if (!strcmp((char *)direntry, blacklist[i]))
-			return 1;
-	}
-
-	return 0;
-}
-
-/*
-static list_t *listdir(char *dirname) 
-{
-	struct dirent *direntry;
-	list_t *wordsetlist;
-	DIR *dr;
-	char *dir_item, path[100];
-	set_t *words;
-
-	wordsetlist = list_create(compare_strings);
-
-	dr = opendir(dirname);
-
-	if (dr == NULL) {
-		ERROR_PRINT("Error\n");
-	}
-
-	while ((direntry = readdir(dr)) != NULL) {
-		dir_item = (char *)direntry->d_name;
-
-		if (!filter_dirname(dir_item)) {
-			strcpy(path, dirname);
-			strcat(path, "/");
-			strcat(path, dir_item);
-
-			words = tokenize(path);
-			
-			list_addlast(wordsetlist, words);
-		}
-	}
-
-	closedir(dr);
-	return wordsetlist;
-}
-*/
 
 /**
  * @brief Get the intersection of words from all files in input
@@ -151,30 +71,30 @@ static list_t *listdir(char *dirname)
  * @param files 
  * @return intersection
  */
-static set_t *list_apply_oper(list_t *wordsets, set_oper oper)
+static set_t *list_apply_oper(list_t *filelist, set_oper oper)
 {
-	void *fname;
+	char *fname;
 	set_t *wordset, *keywords;
-	list_iter_t *setiter;
+	list_iter_t *fiter;
 
-	DEBUG_PRINT("list_apply_oper: creating iter...\n");
-	// printlistofsets("wordset", wordsets);
-	DEBUG_PRINT("length: %d\n", list_size(wordsets));
-	setiter = list_createiter(wordsets);
-	DEBUG_PRINT("list_apply_oper: Created iterator...\n");
+	fiter = list_createiter(filelist);
 
 	// Get the first set of words.
-	if (list_hasnext(setiter)) {
-		keywords = (set_t *)list_next(setiter);
+	if (list_hasnext(fiter)) {
+		fname = list_next(fiter);
+		keywords = tokenize(fname);
 	}
 
 	// Find intersection between all words of all files.
-	while (list_hasnext(setiter)) {
-		wordset = (set_t *)list_next(setiter);
+	while (list_hasnext(fiter)) {
+		fname = list_next(fiter);
+		wordset = tokenize(fname);
+
+		// Apply parameter operation on all files.
 		keywords = oper(keywords, wordset);
 	}
 
-	list_destroyiter(setiter);
+	list_destroyiter(fiter);
 
 	return keywords;
 }
@@ -227,7 +147,7 @@ static void spamfilter(char *spam, char *nonspam, char *mail)
 		char *classification = set_size(result) > 0 ? "SPAM" : "Not spam";
 
 		printf(
-			"%s: %d spam word(s) -> %s",
+			"%s: %d spam word(s) -> %s\n",
 			(char *)fname,
 			set_size(result),
 			classification
