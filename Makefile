@@ -20,7 +20,7 @@ ASSERT_EZ_SRC:=$(patsubst %.c,src/%.c, $(ASSERT_SRC) $(EZ_SRC))
 ASSERT_BB_SRC:=$(patsubst %.c,src/%.c, $(ASSERT_SRC) $(BB_SRC))
 
 CFLAGS=-Wall -Wextra -g -Wpedantic #-O0
-LDFLAGS=-lm -DLOG_LEVEL=1 -DERROR_FATAL
+LDFLAGS=-lm -DLOG_LEVEL=2 -DERROR_FATAL
 
 all: spamfilter numbers
 
