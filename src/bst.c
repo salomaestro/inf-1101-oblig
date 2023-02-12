@@ -259,7 +259,7 @@ static node_t *node_leftmost(node_t *root)
 static node_t *node_getnext(node_t *node)
 {
 	/*
-	 * The following implementation is a tricky one, but hang tight...
+	 * The following implementation is a tricky one, but stay frosty...
 	 * To visit all elements in the tree in an ascending
 	 * order; the first call to this function must have
 	 * the leftmost node of the tree.
