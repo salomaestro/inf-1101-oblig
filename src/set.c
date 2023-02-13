@@ -54,9 +54,6 @@ void set_add(set_t *set, void *elem)
 
     if (!list_addlast(list, elem)) 
         ERROR_PRINT("set_add: Not able to insert elem to list!\n");
-
-    list_sort(list);
-    INFO_PRINT("set_add: Performed list_sort after adding new element.\n");
 }
 
 int set_contains(set_t *set, void *elem) 
@@ -205,6 +202,8 @@ set_iter_t *set_createiter(set_t *set)
     
     if (!iter) ERROR_PRINT("set_createiter: Malloc failed!\n");
     
+    list_sort(set->list);
+
     iter->list_iter = list_createiter(set->list);
 
     INFO_PRINT("set_createiter: Success.\n");
