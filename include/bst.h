@@ -16,7 +16,7 @@ int tree_add(tree_t *tree, void *elem);
 
 int tree_find(tree_t *tree, void *elem);
 
-// int tree_maxdepth(tree_t *tree);
+tree_t *tree_copy(tree_t *tree);
 
 tree_iter_t *tree_createiter(tree_t *tree);
 

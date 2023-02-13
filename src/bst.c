@@ -162,6 +162,7 @@ int tree_find(tree_t *tree, void *elem)
 	return 0;
 }
 
+
 int tree_add(tree_t *tree, void *elem)
 {
 	node_t *curr = tree->root;
@@ -224,6 +225,51 @@ int tree_add(tree_t *tree, void *elem)
 }
 
 /**
+ * @brief Copies a nodes properties, including all links to
+ * other nodes and the element stored in the respective nodes.
+ *
+ * Note: Static function.
+ *
+ * @param node 
+ * @return node_t *
+ */
+static node_t *nodecopy(node_t *node, node_t *parent)
+{
+	if (!node)
+		return NULL;
+
+	node_t *copy = newnode(node->elem);
+
+	// Recursively set the right and left nodes.
+	copy->right = nodecopy(node->right, copy);
+	copy->left = nodecopy(node->left, copy);
+
+	// set parent
+	copy->parent = parent;
+
+	return newnode(node->elem);
+}
+
+
+/**
+ * @brief Create a shallow copy of the tree, meaning
+ * the nodes are true new 'objects' but the elements
+ * are clones and essentially the same.
+ *
+ * @param tree 
+ * @return tree_t *
+ */
+tree_t *tree_copy(tree_t *tree)
+{
+	tree_t *copy = tree_create(tree->cmp);
+
+	copy->root = nodecopy(tree->root, NULL);
+
+	return copy;
+}
+
+
+/**
  * @brief Datatype implementation of tree_iter_t.
  *
  */
@@ -276,13 +322,11 @@ static node_t *node_getnext(node_t *node)
 	 * to move up is if we are one the rightmost path w.r.t the subtree.
 	 *
 	 */
-	if (node->right) {
+	if (node->right)
 		return node_leftmost(node->right);
-	}
 
-	while (node->parent && node == node->parent->right) {
+	while (node->parent && node == node->parent->right)
 		node = node->parent;
-	}
 
 	return node->parent;
 }
@@ -309,7 +353,7 @@ tree_iter_t *tree_createiter(tree_t *tree)
 	// Start with the node that has the smallest value.
 	iter->current = node_leftmost(tree->root);
 	
-	node_t *rightmost = iter->current;
+	node_t *rightmost;
 
 	/**
 	 * Get the rightmost element of the tree.
@@ -372,30 +416,3 @@ void *tree_next(tree_iter_t *iter)
 
 	return used->elem;
 }
-
-
-/**
- * @brief Get the depth of the deepest node in the tree.
- *
- * @param tree 
- * @return int
- */
-// int tree_maxdepth(tree_t *tree)
-// {
-// 	tree_iter_t *iter = tree_createiter(tree);
-//
-// 	int current_maxdepth = 0;
-//
-// 	while (tree_hasnext(iter)) {
-//
-// 		// Increment iterator.
-// 		tree_next(iter);
-//
-// 		int d = iter->current->depth;
-//
-// 		// If larger, update value.
-// 		if (d > current_maxdepth)
-// 			current_maxdepth = d;
-// 	}
-// 	return current_maxdepth;
-// }

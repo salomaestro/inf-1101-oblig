@@ -111,12 +111,7 @@ set_t *set_copy(set_t *set)
 {
 	set_t *copy = set_create(set->cmpfunc);
 
-	set_iter_t *iter = set_createiter(set);
-
-	while (set_hasnext(iter)) {
-		void *elem = set_next(iter);
-		set_add(copy, elem);
-	}
+	copy->tree = tree_copy(set->tree);
 
 	INFO_PRINT("set_copy: Created a set copy.\n");
 	return copy;
