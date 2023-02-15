@@ -1,8 +1,7 @@
 /* Author: Steffen Viken Valvaag <steffenv@cs.uit.no> */
-#include "set.h"
 #include <stdlib.h>
 #include <time.h>
-
+#include "set.h"
 #include "printing.h"
 
 static int compare_ints(void *a, void *b)
@@ -20,65 +19,24 @@ static void *newint(int i)
     return p;
 }
 
-/*
- * Print a set of int elements.
- */
-static void printset(char *prefix, set_t *set)
+
+static double timesince(clock_t start)
 {
-    set_iter_t *it;
-
-    INFO_PRINT("%s", prefix);
-    it = set_createiter(set);
-    while (set_hasnext(it)) {
-	    int *p = set_next(it);
-	    printf(" %d", *p);
-    }
-    printf("\n");
-    set_destroyiter(it);
-}
-
-/*
- * Print a set of int elements, then destroy it.
- */
-static void dumpset(char *prefix, set_t *set)
-{
-    // printset(prefix, set);
-    set_destroy(set);
-}
-
-static void testset(set_t *set_a, set_t *set_b, int n) {
-    clock_t start, end;
-    double cpu_time_used;
-    set_t *uni, *diff, *inter;
-
-    start = clock();
-    uni = set_union(set_a, set_b);
-    printf("%d,union,%lf\n", n, ((double) (clock() - start) / CLOCKS_PER_SEC));
-
-    start = clock();
-    diff = set_difference(set_a, set_b);
-    printf("%d,difference,%lf\n", n, ((double) (clock() - start) / CLOCKS_PER_SEC));
-
-    start = clock();
-    inter = set_intersection(set_a, set_b);
-    printf("%d,intersection,%lf\n", n, ((double) (clock() - start) / CLOCKS_PER_SEC));
-
-    set_destroy(uni);
-    set_destroy(diff);
-    set_destroy(inter);
+    return (double) (clock() - start) / CLOCKS_PER_SEC;
 }
 
 int main(int argc, char **argv)
 {
     if (argc != 2) {
-	ERROR_PRINT("Must provide exactly 1 argument!\n");
+	ERROR_PRINT("Must provide exactly 1 argument!\nUsage: %s 100\n", argv[0]);
     }
 
-    set_t *set_a, *set_b, *set_c, *set_d;
-    int n_tests, i, j, n = 10000;
+    set_t *set_a, *set_b, *union_set, *intersection_set, *difference_set;
+    clock_t start;
+    int i, n;
     int **nums;
 
-    n_tests = atol(argv[1]);
+    n = atol(argv[1]);
 
     srand(time(NULL));
 
@@ -92,22 +50,29 @@ int main(int argc, char **argv)
     set_a = set_create(compare_ints);
     set_b = set_create(compare_ints);
 
-    for (j = 0; j < n_tests; j++) {
-	for (i = 0; i < n; i++) {
-	    set_add(set_a, nums[rand() % n]);
-	    set_add(set_b, nums[rand() % n]);
+    for (i = 0; i < n; i++) {
+	start = clock();
+	set_add(set_a, nums[rand() % n]);
+	printf("%d,add,%lf\n", i, timesince(start));
 
-	    if (i == n/100 - 1) {
-		testset(set_a, set_b, n/100);
-	    }
-	    if (i == n/10 - 1) {
-		testset(set_a, set_b, n/10);
-	    }
-	    if (i == n - 1) {
-		testset(set_a, set_b, n);
-	    }
+	set_add(set_b, nums[rand() % n]);
 
-	}
+	start = clock();
+	union_set = set_union(set_a, set_b);
+	printf("%d,union,%lf\n", i, timesince(start));
+
+	start = clock();
+	difference_set = set_difference(set_a, set_b);
+	printf("%d,difference,%lf\n", i, timesince(start));
+
+
+	start = clock();
+	intersection_set = set_intersection(set_a, set_b);
+	printf("%d,intersection,%lf\n", i, timesince(start));
+
+	set_destroy(union_set);
+	set_destroy(difference_set);
+	set_destroy(intersection_set);
     }
 
     set_destroy(set_a);
