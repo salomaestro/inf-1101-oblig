@@ -30,7 +30,6 @@ struct node {
 	node_t *left;
 	node_t *right;
 	node_t *parent;
-	int depth;
 };
 
 /**
@@ -50,7 +49,6 @@ static node_t *newnode(void *elem)
 	node->right = NULL;
 	node->left =NULL;
 	node->parent =NULL;
-	node->depth = 0;
 
 	return node;
 }
@@ -63,19 +61,22 @@ static node_t *newnode(void *elem)
  */
 static void deletenode(node_t *root)
 {
-	INFO_PRINT("deletenode: check !root...\n");
-	if (!root)
+	if (!root) {
+		INFO_PRINT("deletenode: Not a node...\n");
 		return;
+	}
 
-	INFO_PRINT("deletenode: check root->left...\n");
-	if (root->left)
+	if (root->left) {
+		INFO_PRINT("deletenode: Enter root->left...\n");
 		deletenode(root->left);
+	}
 
-	INFO_PRINT("deletenode: check root->right...\n");
-	if (root->right)
+	if (root->right) {
+		INFO_PRINT("deletenode: Enter root->right...\n");
 		deletenode(root->right);
+	}
 
-	INFO_PRINT("deletenode: freeing root\n");
+	INFO_PRINT("deletenode: Freeing node\n");
 	free(root);
 }
 
@@ -131,7 +132,7 @@ size_t tree_size(tree_t *tree)
  *
  * @param tree 
  * @param elem 
- * @return
+ * @return 1 if element found. 0 otherwise.
  */
 int tree_find(tree_t *tree, void *elem)
 {
@@ -163,23 +164,29 @@ int tree_find(tree_t *tree, void *elem)
 }
 
 
+/**
+ * @brief Add a element to the tree. The element must be a void *.
+ *
+ * @param tree 
+ * @param elem 
+ * @return 1 for success; element was added. 2 for element already exist;
+ * the implementation does not allow for duplicate entries. 0 Something
+ * unexpected happened; should in principle not return 0.
+ */
 int tree_add(tree_t *tree, void *elem)
 {
 	node_t *curr = tree->root;
+	int cmpval;
 
+	// Handle case where tree does not have a root.
 	if (!curr) {
 		tree->root = newnode(elem);
 		tree->size++;
-		tree->root->depth = 0;
 		return 1;
 	}
 
-	int cmpval, depth;
-	depth = 0;
-
 	while (curr) {
 		cmpval = tree->cmp(curr->elem, elem);
-		depth++;
 
 		// Indication to move to the left side of current node.
 		if (cmpval > 0) {
@@ -197,7 +204,6 @@ int tree_add(tree_t *tree, void *elem)
 			curr->left = newnode(elem);
 			curr->left->parent = curr;
 			tree->size++;
-			curr->left->depth = depth;
 			return 1;
 		}
 
@@ -221,6 +227,7 @@ int tree_add(tree_t *tree, void *elem)
 		INFO_PRINT("tree_add: Element already exist.\n");
 		return 2;
 	}
+	DEBUG_PRINT("tree_add: Something unexpected happened.\n");
 	return 0;
 }
 
@@ -254,7 +261,8 @@ static node_t *nodecopy(node_t *node, node_t *parent)
 /**
  * @brief Create a shallow copy of the tree, meaning
  * the nodes are true new 'objects' but the elements
- * are clones and essentially the same.
+ * are clones and essentially the same as in the
+ * original.
  *
  * @param tree 
  * @return tree_t *
@@ -270,13 +278,12 @@ tree_t *tree_copy(tree_t *tree)
 
 
 /**
- * @brief Datatype implementation of tree_iter_t.
+ * @typedef Datatype implementation of tree_iter_t.
  *
  */
 struct tree_iter
 {
 	node_t *current;
-	node_t *rightmost;
 };
 
 /**
@@ -335,7 +342,7 @@ static node_t *node_getnext(node_t *node)
  * @brief Create a iter to iterate over the input tree.
  *
  * @param tree 
- * @return iter
+ * @return iter | NULL (if tree is empty)
  */
 tree_iter_t *tree_createiter(tree_t *tree)
 {
@@ -352,19 +359,6 @@ tree_iter_t *tree_createiter(tree_t *tree)
 
 	// Start with the node that has the smallest value.
 	iter->current = node_leftmost(tree->root);
-	
-	node_t *rightmost;
-
-	/**
-	 * Get the rightmost element of the tree.
-	 * This will act as a natural last element, and
-	 * stop condition for the iterator.
-	 */
-	while (rightmost->right) {
-		rightmost = rightmost->right;
-	}
-
-	iter->rightmost = rightmost;
 
 	INFO_PRINT("tree_createiter: Tree iterator successfully created\n.");
 	return iter;
@@ -385,12 +379,12 @@ void tree_destroyiter(tree_iter_t *iter)
  * @brief Check if current iter has a next value.
  *
  * @param iter 
- * @return 
+ * @return 0 (end of iterator) | 1 (next exist).
  */
 int tree_hasnext(tree_iter_t *iter)
 {
-	DEBUG_PRINT("tree_hasnext: starting...\n");
 	if (iter->current == NULL)
+		INFO_PRINT("tree_hasnext: Reached end of iterator.");
 		return 0;
 	return 1;
 }
@@ -403,11 +397,17 @@ int tree_hasnext(tree_iter_t *iter)
  */
 void *tree_next(tree_iter_t *iter)
 {
-	DEBUG_PRINT("tree_next: starting...\n");
+	// Store the current element to output from iter's current element.
 	node_t *used = iter->current;
 
+	// Find the next element (will not be output in this iteration).
 	iter->current = node_getnext(used);
 
+	/*
+	 * Because node_getnext(rightmost node) returns itself,
+	 * we may use this as an indicator to stop the iteration
+	 * when the current has been used.
+	 */
 	if (iter->current == used) {
 		INFO_PRINT("tree_next: End of iterator\n.");
 		iter->current = NULL;
