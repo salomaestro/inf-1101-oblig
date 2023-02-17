@@ -81,7 +81,11 @@ static set_t *list_apply_oper(list_t *filelist, set_oper oper)
 
 	// Get the first set of words.
 	if (list_hasnext(fiter)) {
+
+		// Get first filename
 		fname = list_next(fiter);
+
+		// Tokenize the file, and get the set.
 		keywords = tokenize(fname);
 	}
 
@@ -125,27 +129,36 @@ static void spamfilter(char *spam, char *nonspam, char *mail)
 	set_t *spamwords, *nonspamwords, *mailwords, *filterset, *result;
 	list_iter_t *mailiter;
 
+	// Put filenames of all files of input directories
+	// into separate lists.
 	spamfiles = find_files(spam);
 	nonspamfiles = find_files(nonspam);
 	mailfiles = find_files(mail);
 
+	// Apply intersection to spamwords and union to non-spamwords.
 	spamwords = list_apply_oper(spamfiles, set_intersection);
 	nonspamwords = list_apply_oper(nonspamfiles, set_union);
 
+	// Find the difference between spam and non-spam.
 	filterset = set_difference(spamwords, nonspamwords);
 
 	mailiter = list_createiter(mailfiles);
 
+	// Iterate over the mail files.
 	while (list_hasnext(mailiter)) {
 		fname = list_next(mailiter);
 
+		// Tokenize into sets of words.
 		mailwords = tokenize(fname);
 
+		// Find intersection between the filterset and mailwords.
 		result = set_intersection(mailwords, filterset);
 		
 
-		char *classification = set_size(result) > 0 ? "SPAM" : "Not spam";
+		// Returns SPAM if more than 0 spamwords found. Else Not spam.
+		classification = set_size(result) > 0 ? "SPAM" : "Not spam";
 
+		// Match format of comparison file.
 		printf(
 			"%s: %d spam word(s) -> %s\n",
 			(char *)fname,
