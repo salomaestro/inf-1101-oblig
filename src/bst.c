@@ -319,7 +319,7 @@ static node_t *node_getnext(node_t *node)
 	 *
 	 * The first conditional statement says that if the input
 	 * node has a right node then find the leftmost node of
-	 * the rightmost. This ensures that we always get the node
+	 * the right node. This ensures that we always get the node
 	 * with the smallest element first.
 	 * 
 	 * The while loop says that if the node has a parent, i.e.
