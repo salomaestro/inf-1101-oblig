@@ -254,7 +254,7 @@ static node_t *nodecopy(node_t *node, node_t *parent)
 	// set parent
 	copy->parent = parent;
 
-	return newnode(node->elem);
+	return copy;
 }
 
 
@@ -272,6 +272,7 @@ tree_t *tree_copy(tree_t *tree)
 	tree_t *copy = tree_create(tree->cmp);
 
 	copy->root = nodecopy(tree->root, NULL);
+	copy->size = tree->size;
 
 	return copy;
 }
@@ -383,10 +384,9 @@ void tree_destroyiter(tree_iter_t *iter)
  */
 int tree_hasnext(tree_iter_t *iter)
 {
-	if (iter->current == NULL)
-		INFO_PRINT("tree_hasnext: Reached end of iterator.");
-		return 0;
-	return 1;
+	if (iter->current)
+		return 1;
+	return 0;
 }
 
 /**
