@@ -2,14 +2,15 @@ IMPLEMENTATION=list
 
 ifeq ($(IMPLEMENTATION),list)
   SRC=linkedlist.c set.c
+  SPAMFILTER_SRC=spamfilter.c common.c
 else ifeq ($(IMPLEMENTATION),bst)
   SRC=bst.c set_bst.c
+  SPAMFILTER_SRC=spamfilter.c common.c linkedlist.c
 endif
 
-SPAMFILTER_SRC=spamfilter.c common.c
-NUMBERS_SRC=numbers.c common.c
+NUMBERS_SRC=numbers.c
 BENCHMARK_SRC=benchmark.c
-ASSERT_SRC=assert_set.c common.c
+ASSERT_SRC=assert_set.c
 
 INCLUDE=include
 
@@ -19,7 +20,7 @@ SPAMFILTER_SRC:=$(patsubst %.c,src/%.c, $(SPAMFILTER_SRC) $(SRC))
 ASSERT_SRC:=$(patsubst %.c,src/%.c, $(ASSERT_SRC) $(SRC))
 
 CFLAGS=-Wall -Wextra -g -Wpedantic #-O0
-LDFLAGS=-lm -DLOG_LEVEL=2 -DERROR_FATAL
+LDFLAGS=-lm -DLOG_LEVEL=1 -DERROR_FATAL
 
 all: spamfilter numbers
 
