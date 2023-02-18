@@ -33,6 +33,7 @@ int main(int argc, char **argv)
 
     set_t *set_a, *set_b, *union_set, *intersection_set, *difference_set;
     clock_t start;
+    double cumsum = 0;
     int i, n;
     int **nums;
 
@@ -50,25 +51,33 @@ int main(int argc, char **argv)
     set_a = set_create(compare_ints);
     set_b = set_create(compare_ints);
 
-    for (i = 0; i < n; i++) {
+    printf("n,add,union,difference,intersection\n");
+
+    for (i = 0; i < n; i = i + 1) {
 	start = clock();
 	set_add(set_a, nums[rand() % n]);
-	printf("%d,add,%lf\n", i, timesince(start));
+	// printf("%d,add,%lf\n", i, timesince(start));
+	cumsum += timesince(start);
+
+	printf("%d,%lf,", i, cumsum);
 
 	set_add(set_b, nums[rand() % n]);
 
 	start = clock();
 	union_set = set_union(set_a, set_b);
-	printf("%d,union,%lf\n", i, timesince(start));
+	// printf("%d,union,%lf\n", i, timesince(start));
+	printf("%lf,", timesince(start));
 
 	start = clock();
 	difference_set = set_difference(set_a, set_b);
-	printf("%d,difference,%lf\n", i, timesince(start));
+	// printf("%d,difference,%lf\n", i, timesince(start));
+	printf("%lf,", timesince(start));
 
 
 	start = clock();
 	intersection_set = set_intersection(set_a, set_b);
-	printf("%d,intersection,%lf\n", i, timesince(start));
+	// printf("%d,intersection,%lf\n", i, timesince(start));
+	printf("%lf\n", timesince(start));
 
 	set_destroy(union_set);
 	set_destroy(difference_set);
