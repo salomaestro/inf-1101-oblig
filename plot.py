@@ -1,31 +1,43 @@
-import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import pyplot as plt
+from pathlib import Path
+
+root = Path(".").resolve()
+data = root / "benchmarks"
+bst = data / "2500_bst.csv"
+ll = data / "2500_list.csv"
+plots = root / "plots"
+
+
+def compare_implementations(n, oper_bst, oper_ll, oper_name, filter=None):
+    if filter is not None:
+        oper_bst = np.convolve(oper_bst, filter, mode="same")
+        oper_ll = np.convolve(oper_ll, filter, mode="same")
+
+    fname = oper_name + "_compared.png"
+
+    plt.title(oper_name + " compared.")
+    plt.plot(n, oper_bst, label="bst")
+    plt.plot(n, oper_ll, label="linked list")
+    plt.legend()
+    plt.savefig(plots / fname)
+    plt.show()
+
 
 params = {
-    "header": None,
-    "names": ("operation", "time"),
-    "index_col": 0
+    "skip_header": True,
+    "delimiter": ","
 }
 
-bst = pd.read_csv("./benchmarks/1500_bst.csv", **params)
-linkedlist = pd.read_csv("./benchmarks/1500_list.csv", **params)
+headers = np.genfromtxt(bst, max_rows=1, dtype=str, delimiter=",")
 
-# Pivot the data so that each operation has its own column
-pivoted_bst = bst.pivot(columns='operation', values='time')
-pivoted_linkedlist = linkedlist.pivot(columns='operation', values='time')
+bst_data = np.genfromtxt(bst, **params)
+ll_data = np.genfromtxt(ll, **params)
 
-# Plot each operation in a separate subplot
-ax_bst = pivoted_bst.plot(subplots=True, figsize=(8, 10))
-ax_ll = pivoted_linkedlist.plot(subplots=True, figsize=(8, 10))
+filter = np.ones(5)
 
-# Set titles and labels
-for i, operation in enumerate(pivoted_bst.columns):
-    line = ax_ll[i].lines[0]
-    print(line.get_xdata())
-    ax_bst[i].set_title(operation)
-    ax_bst[i].set_xlabel('n')
-    ax_bst[i].set_ylabel('time (s)')
+n = bst_data[:, 0]
 
-# Show the plot
-plt.savefig("./list_test.png")
-plt.show()
+for i, oper_name in enumerate(headers[1:], start=1):
+    compare_implementations(n, bst_data[:, i], ll_data[:, i], oper_name)
+    # compare_implementations(n, bst[:, i], ll[:, i], oper_name, filter)
