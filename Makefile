@@ -8,7 +8,7 @@ endif
 
 SPAMFILTER_SRC=spamfilter.c common.c
 NUMBERS_SRC=numbers.c common.c
-BENCHMARK_SRC=benchmark.c common.c
+BENCHMARK_SRC=benchmark.c
 ASSERT_SRC=assert_set.c common.c
 
 INCLUDE=include
