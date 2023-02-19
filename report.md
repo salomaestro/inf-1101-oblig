@@ -30,16 +30,14 @@ language Python. A GNU Bash script is also provided for quickly comparing the
 outputs of both the spamfilter built from `spamfilter.c`, and a test file 
 `numbers.c` which does set operations on integers.
 
-The pre-code provided for the assignment provides multiple C-files for verifying
-that the output of the set implementation is correct. We use Make to build the
-source code into executables.
+The pre-code provided for the assignment provides multiple C-source files for 
+verifying that the output of the set implementation is correct. We use Make to
+build the source code into executables.
 
-## Design and implementation
-
-The following section will be divided into two parts, one focusing on the set
-implementation using the api provided by the linked list source code, and the
-other creating a new implementation for a set, which instead uses a binary search
-tree to store elements.
+The focus of the assignment will be on implementing an abstract data type (ADT)
+for a set. An ADT is a programming paradigm where the user does not have to
+interact with the interals of the program. Therefore the user does not
+necessarily need to know how an implementation stores its data. 
 
 ### The set criteria
 
@@ -59,6 +57,13 @@ Additionally we also need ways of adding elements to the sets, checking if an
 element is contained in a set, creation and destruction, etc. but these
 implementations are spcific to the underlying datatype, which handles storage of
 elements and will be discussed in the next sections.
+
+## Design and implementation
+
+The following section will be divided into two parts, one focusing on the set
+implementation using the api provided by the linked list source code, and the
+other creating a new implementation for a set, which instead uses a binary 
+search tree to store elements.
 
 ### Set based on a linked list
 
@@ -118,6 +123,12 @@ left and larger to its right. This means that looking up a element and inserting
 a new element in general needs fewer operations than with a sequential structure
 like a linked list.
 
+It should however be noted that the implementation provided in this assignment
+does not implement a balanced binary search tree, like and *AVL tree*, which use
+rotations to constraint the difference in node depths. This implies that the
+structure is very sensitive to the inital input to the tree. For example if the
+inserted elements are ordered we would end up with principally a linked list.
+
 The tree starts out with a root node, each node in the tree implemented in this
 assignment stores a pointer to its two children located either to the right or
 left of itself, and additionally a pointer to the parent of the node.
@@ -168,9 +179,30 @@ parent.
 
 This algorithm will traverse the tree in an ordered manner.
 
+### Implementation of set operations
+
+As previosly listed and explained the set is required to support the operations
+union, intersection and difference between two sets. The specific
+implementations are implemented identically for each implementation found in
+`src/set.c` and `src/set_bst.c`. The logic is as follows:
+
+- Union: Create a copy of one of the set, then iterate over the other, adding
+its elements to the copy. Duplicates will by default in sets not be kept, only
+one instance of each value.
+- Intersection: Create a empty set and iterate over one of the input sets. For
+every element check to see if it is also contained in the other input set. If so
+add the element to the new set.
+- Difference: Create a empty set, iterate over the **first** set. If the element
+is not contained in the second set, add it to the new one. This logic is simply
+the negated logic of the intersection implementation.
+
 ## Evaluation
 
+![add](plots/add_compared.png)
 
+![union](plots/union_compared.png)
+![intersection](plots/intersection_compared.png)
+![difference](plots/difference_compared.png)
 
 ## Conclusion
 

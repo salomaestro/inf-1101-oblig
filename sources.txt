@@ -2,3 +2,9 @@ GNU Bash:
 https://www.gnu.org/software/bash/
 GNU Make:
 https://www.gnu.org/software/make/
+ADT:
+https://en.wikipedia.org/wiki/Abstract_data_type
+AVL tree:
+https://en.wikipedia.org/wiki/AVL_tree
+BST:
+https://en.wikipedia.org/wiki/Binary_search_tree
