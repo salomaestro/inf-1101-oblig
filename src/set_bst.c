@@ -51,15 +51,20 @@ int set_contains(set_t *set, void *elem)
 
 set_t *set_union(set_t *a, set_t *b)
 {
+	void *elem;
 	set_t *new_set = set_copy(a);
 
 	set_iter_t *iter = set_createiter(b);
 
 	while (set_hasnext(iter)) {
-		void *elem = set_next(iter);
+		elem = set_next(iter);
 
+		// Does not need to check if element exist as
+		// that will be handled by set_add.
 		set_add(new_set, elem);
 	}
+
+	set_destroyiter(iter);
 
 	INFO_PRINT("set_union: Created a union set.\n");
 	return new_set;
@@ -71,9 +76,15 @@ set_t *set_intersection(set_t *a, set_t *b)
 	set_t *new_set = set_create(a->cmpfunc);
 
 	set_iter_t *iter = set_createiter(b);
+	void *elem;
 
+    /*
+     * As we want to find overlaps between a and b,
+     * we only need to iterate over one of them, 
+     * and see which elements from one is in the other. 
+     */
 	while (set_hasnext(iter)) {
-		void *elem = set_next(iter);
+		elem = set_next(iter);
 
 		if (set_contains(a, elem))
 			set_add(new_set, elem);
@@ -93,9 +104,10 @@ set_t *set_difference(set_t *a, set_t *b)
 	 * Iterate over the other set.
 	 */
 	set_iter_t *iter = set_createiter(a);
+	void *elem;
 
 	while (set_hasnext(iter)) {
-		void *elem = set_next(iter);
+		elem = set_next(iter);
 
 		// If element from b is not contained in a add to new set.
 		if (!set_contains(b, elem))

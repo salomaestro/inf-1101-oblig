@@ -66,52 +66,28 @@ int set_contains(set_t *set, void *elem)
     return 0;
 }
 
-set_t *set_union(set_t *a, set_t *b) 
+set_t *set_union(set_t *a, set_t *b)
 {
-
-    /* Verify that cmpfunc's are equal. */
-    // if (a->cmpfunc != b->cmpfunc)
-    //     ERROR_PRINT("set_union: Set a and b does not have same cmp function!\n");
-
-    /* 
-     * Create a new set that will contain the
-     * elements from set a and set b.
-     */
-    set_t *new_set = set_create(a->cmpfunc);
-
-    /* Iterators for both sets. */
-    set_iter_t *iter_a = set_createiter(a);
-    set_iter_t *iter_b = set_createiter(b);
     void *elem;
+    set_t *new_set = set_copy(a);
+    set_iter_t *iter = set_createiter(b);
 
-    /* Iterate over both sets and add the elem's. */
-    while (set_hasnext(iter_a)) {
-        elem = set_next(iter_a);
-        set_add(new_set, elem);
-    }
-    
-    INFO_PRINT("set_union: Iterated over A.\n");
+    // iterate over set b adding elements to the copy of a.
+    while (set_hasnext(iter)) {
+        elem = set_next(iter);
 
-    while (set_hasnext(iter_b)) {
-        elem = set_next(iter_b);
+        // Duplicates will not be added by default.
         set_add(new_set, elem);
     }
 
-    INFO_PRINT("set_union: Iterated over B.\n");
+    set_destroyiter(iter);
 
-    /* Free space of iterators. */
-    set_destroyiter(iter_a);
-    set_destroyiter(iter_b);
-
+	INFO_PRINT("set_union: Created a union set.\n");
     return new_set;
 }
 
 set_t *set_intersection(set_t *a, set_t *b) 
 {
-    /* Verify cmpfuncs are equal. */
-    // if (a->cmpfunc != b->cmpfunc)
-    //     ERROR_PRINT("set_intersection: Set a and b does not have same cmp function!\n");
-
     /* Create a new set which will be the intersection set. */
     set_t *new_set = set_create(a->cmpfunc);
 
@@ -126,23 +102,18 @@ set_t *set_intersection(set_t *a, set_t *b)
     while (set_hasnext(iter)) {
         elem = set_next(iter);
 
-        if (set_contains(b, elem)) {
+        if (set_contains(b, elem))
             set_add(new_set, elem);
-
-            INFO_PRINT("set_intersection: Set B contained elem from set A.\n");
-        }
     }
 
     set_destroyiter(iter);
 
+	INFO_PRINT("set_intersection: Created a intersection set.\n");
     return new_set;
 }
 
 set_t *set_difference(set_t *a, set_t *b)
 {
-    // if (a->cmpfunc != b->cmpfunc)
-    //     ERROR_PRINT("set_difference: Set a and b does not have same cmp function!\n");
-
     set_t *new_set = set_create(a->cmpfunc);
 
     set_iter_t *iter = set_createiter(a);
