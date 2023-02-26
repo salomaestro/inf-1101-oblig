@@ -1,7 +1,11 @@
 from pathlib import Path
 
+import matplotlib
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
+
 
 # Set all paths
 root = Path(".").resolve()
@@ -11,7 +15,11 @@ ll = data / "2500_list.csv"
 plots = root / "plots"
 
 
-def compare_implementations(n, oper_bst, oper_ll, oper_name, filter=None):
+def ma_mask(x, lenght):
+    return np.convolve(x, np.ones((lenght, )) / lenght, mode="same")
+
+
+def compare_implementations(n, oper_bst, oper_ll, oper_name, filter_lenght=10):
     """Compares two implementations from data given in oper_bst or oper_ll.
 
     Args
@@ -20,31 +28,41 @@ def compare_implementations(n, oper_bst, oper_ll, oper_name, filter=None):
         oper_bst (numpy.ndarray): y-axis from bst implementation.
         oper_ll (numpy.ndarray): y-axis from linked list implementation.
         oper_name (str): Name of operation.
-        filter (numpy.ndarray): Optional, filter (use numpy.ones(filter_size)
-                                                  for moving average filter.)
+        filter_length (int): Length of moving average filter.
     """
 
-    # optional filter of signal.
-    if filter is not None:
-        oper_bst = np.convolve(oper_bst, filter, mode="same")
-        oper_ll = np.convolve(oper_ll, filter, mode="same")
+    fname = oper_name + "_compared.png"
 
-    fname1 = oper_name + "_compared.png"
-    fname2 = oper_name + "_compared_difference_.png"
+    fig, axs = plt.subplots(2, 2, figsize=(8, 8), sharex=True)
 
-    plt.title(oper_name + " compared.")
-    plt.plot(n, oper_bst, label="bst")
-    plt.plot(n, oper_ll, label="linked list")
-    plt.legend()
-    # plt.savefig(plots / fname1)
-    plt.show()
+    axs[0, 0].set_title("Comparison")
+    axs[0, 0].plot(n, oper_bst, label="bst")
+    axs[0, 0].plot(n, oper_ll, label="linked list")
 
-    plt.title(oper_name + " compared difference")
-    plt.plot(n, np.zeros_like(n), color="black", lw=0.4)
-    plt.plot(n, oper_ll - oper_bst, label="linkedlist - bst")
-    plt.legend()
-    # plt.savefig(plots / fname2)
-    plt.show()
+    axs[0, 1].set_title("BST")
+    axs[0, 1].plot(n, oper_bst, label="bst", linewidth=2.5)
+    axs[0, 1].plot(n, ma_mask(oper_bst, filter_lenght),
+                   label=f"$MA(bst, {filter_lenght})$",
+                   color="C3", linewidth=1)
+
+    axs[1, 0].set_title("Linked list")
+    axs[1, 0].plot(n, oper_ll, color="C1", label="linked list", linewidth=2.5)
+    axs[1, 0].plot(n, ma_mask(oper_ll, filter_lenght),
+                   label=f"$MA(linked list, {filter_lenght})$",
+                   color="C9", linewidth=1)
+
+    axs[1, 1].set_title("Difference")
+    axs[1, 1].plot(n, oper_bst - oper_ll, color="C2", label="bst - linked list")
+    axs[1, 1].grid()
+
+    for ax in axs.flatten():
+        ax.set_xlabel("n (Tries to add elements)")
+        ax.set_ylabel("time (s)")
+        ax.legend()
+
+    fig.tight_layout()
+    plt.savefig(plots / fname)
+
 
 def best_fit(n, oper_data, oper_name, degree):
 
@@ -74,13 +92,9 @@ headers = np.genfromtxt(bst, max_rows=1, dtype=str, delimiter=",")
 bst_data = np.genfromtxt(bst, **params)
 ll_data = np.genfromtxt(ll, **params)
 
-# Optional filter.
-filter = np.ones(5)
-
 n = bst_data[:, 0]
 
 for i, oper_name in enumerate(headers[1:], start=1):
     compare_implementations(n, bst_data[:, i], ll_data[:, i], oper_name)
     # best_fit(n, bst_data[:, i], oper_name, 2)
     # best_fit(n, ll_data[:, i], oper_name, 2)
-    # compare_implementations(n, bst_data[:, i], ll_data[:, i], oper_name, filter)
