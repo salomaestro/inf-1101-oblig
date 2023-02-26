@@ -1,6 +1,14 @@
 # inf-1101-oblig
 My implementation of the problems given in the mandatory assignment in UiT course inf-1101.
 
+## TODO
+
+- [ ] Fix makefile to spawn venv, install dependencies under `make install`.
+- [ ] Check that `python-requirements.txt` is up to date.
+- [ ] Finish `equalith.sh`, it should both test `number.c` and `spamfilter.c`.
+- [ ] Create proper `README.md`.
+- [ ] Double check that all assignment criteria has been met.
+
 
 ## A note on checking the correct output
 
