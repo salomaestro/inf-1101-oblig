@@ -123,15 +123,13 @@ set_t *set_difference(set_t *a, set_t *b)
         elem = set_next(iter);
 
         /* Negated the logic from set_intersection. */
-        if (!set_contains(b, elem)) {
+        if (!set_contains(b, elem))
             set_add(new_set, elem);
-        
-            INFO_PRINT("set_difference: Found difference in A from B.\n");
-        }
     }
 
     set_destroyiter(iter);
 
+    INFO_PRINT("set_difference: Created a difference set.\n");
     return new_set;
 }
 
