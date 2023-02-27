@@ -1,49 +1,56 @@
 #!/bin/bash
 
-TARGET=./numbers-out.txt
-TRUTHFILE=./numbers-expected.txt
-TEMPFILE=./temp.txt
+# Read target files from command line
+TARGETNUMBERS=$1
+TARGETSPAM=$2
 
-# Verify that target exists
-if ! test -f "$TARGET"; then
-	echo "$TARGET does not exist."
+# Store filenames of files with expected output.
+EXPECTEDNUMBERS=./numbers-expected.txt
+EXPECTEDSPAM=./spamfilter-expected.txt
 
-	if ! test -f ./numbers; then
-		echo "Executable does not exist."
+# Temporary file
+TEMPNUMBERS=./tempnums.txt
 
+# Put all files into list
+FILES=($TARGETNUMBERS $EXPECTEDNUMBERS $TARGETSPAM $EXPECTEDSPAM)
 
-		while true; do
-			read -r -p "Build? (Y/n): " ans
-			case $ans in
-				[Yy]* ) make numbers; break;;
-				[Nn]* ) exit;;
-				* ) echo "Try again..:";;
-			esac
-		done
+ALL_IS_GOOD=1
+
+# Verify all files exist.
+for file in "${FILES[@]}"; do
+	if ! test -f $file; then
+		echo "Missing file: ${file}."
+		ALL_IS_GOOD=0
 	fi
+done
 
-	while true; do
-		read -r -p "Run? (Y/n):" ans2
-		case $ans2 in
-			[Yy]* ) ./numbers > $TARGET; break;;
-			[Nn]* ) exit;;
-			* ) echo "Try again..:";;
-		esac
-	done
+# Exit if not all files are present.
+if [[ $ALL_IS_GOOD == 0 ]]; then
+	echo "Use: make equal"
+	exit;
 fi
 
+# Create temporary file
+touch $TEMPNUMBERS
 
-if ! test -f "$TARGET"; then
-	echo "$TARGET does not exist."
-else
-	echo "Successully built and ran $TARGET"
-fi
+# Delimit on : and write output to temporary file
+awk -F: '{print $2}' $EXPECTEDNUMBERS> $TEMPNUMBERS
 
+# Compare temporary file with target
+diff -s $TEMPNUMBERS $TARGETNUMBERS
 
-awk -F: '{print $2}' $TRUTHFILE > $TEMPFILE
+# Function which filters to outputs from spamfilter because produced
+# output is not necessarily ordered by mailx.txt, ordering is arbitrary.
+filterspam () {
+	cat $1 | awk -F'mail' '{print $3}' | awk -F. '{print $1" "$2}' | awk '{print $1" "$3" "$7}' | sort -nk1
+}
 
-diff -s $TEMPFILE $TARGET
+# Store function output into variables
+v1=$(filterspam $TARGETSPAM)
+v2=$(filterspam $EXPECTEDSPAM)
 
-_="$(make clean)"
+# Test if outputs are equal.
+test "$v1" = "$v2" && echo "Files $TARGETSPAM and $EXPECTEDSPAM produce same output"
 
-rm $TEMPFILE $TARGET
+echo "Cleaning up tempfile..."
+rm $TEMPNUMBERS
