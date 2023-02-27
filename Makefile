@@ -36,6 +36,12 @@ benchmark: $(NUMBERS_SRC) Makefile
 assert: $(ASSERT_SRC) Makefile
 	gcc -o $@ $(CFLAGS) $(ASSERT_SRC) -I$(INCLUDE) $(LDFLAGS)
 
+venv:
+	python3 -m venv venv && venv/bin/python -m pip install -r python-requirements.txt
+
+plot:
+	venv/bin/python plot.py && printf "\n\033[0;31mOpen plots/*.png\033[0m\n"
+
 clean:
 	rm -f *~ *.o *.exe spamfilter numbers assert benchmark && rm -rf *.dSYM
 
