@@ -36,12 +36,18 @@ benchmark: $(NUMBERS_SRC) Makefile
 assert: $(ASSERT_SRC) Makefile
 	gcc -o $@ $(CFLAGS) $(ASSERT_SRC) -I$(INCLUDE) $(LDFLAGS)
 
-venv:
-	python3 -m venv venv && venv/bin/python -m pip install -r python-requirements.txt
+gendata:
+	bash generate-data.sh && notify-send "Done creating data!"
 
-plot:
-	venv/bin/python plot.py && printf "\n\033[0;31mOpen plots/*.png\033[0m\n"
+venv:
+	python3 -m venv venv && venv/bin/python -m pip install -r python-requirements.txt && notify-send "make venv -- Done"
+
+plot: venv
+	mkdir -p plots && venv/bin/python plot.py && notify-send "See plots in ./plots/"
+
+equal: all
+	./spamfilter ./data/spam ./data/nonspam ./data/mail > spamfilter-got.txt && ./numbers > numbers-got.txt && bash equality.sh numbers-got.txt spamfilter-got.txt
 
 clean:
-	rm -f *~ *.o *.exe spamfilter numbers assert benchmark && rm -rf *.dSYM
+	rm -f *~ *.o *.exe spamfilter numbers assert benchmark && rm -rf *.dSYM *-got.txt
 
