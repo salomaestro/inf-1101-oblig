@@ -2,8 +2,8 @@ from pathlib import Path
 
 import matplotlib
 import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
+# import matplotlib
+# matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 
 
