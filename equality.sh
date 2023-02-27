@@ -5,14 +5,14 @@ TARGETNUMBERS=$1
 TARGETSPAM=$2
 
 # Store filenames of files with expected output.
-EXPECTEDNUMBERS=./numbers-expected.txt
-EXPECTEDSPAM=./spamfilter-expected.txt
+EXPECTEDNUMBERS=numbers-expected.txt
+EXPECTEDSPAM=spamfilter-expected.txt
 
 # Temporary file
-TEMPNUMBERS=./tempnums.txt
+TEMPNUMBERS=tempnums.txt
 
 # Put all files into list
-FILES=($TARGETNUMBERS $EXPECTEDNUMBERS $TARGETSPAM $EXPECTEDSPAM)
+FILES=( $TARGETNUMBER $EXPECTEDNUMBER $TARGETSPAM $EXPECTEDSPAM )
 
 ALL_IS_GOOD=1
 
