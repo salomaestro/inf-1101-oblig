@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 # import matplotlib
 # matplotlib.use('TkAgg')
@@ -52,7 +51,8 @@ def compare_implementations(n, oper_bst, oper_ll, oper_name, filter_lenght=10):
                    color="C9", linewidth=1)
 
     axs[1, 1].set_title("Difference")
-    axs[1, 1].plot(n, oper_bst - oper_ll, color="C2", label="bst - linked list")
+    axs[1, 1].plot(n, oper_bst - oper_ll, color="C2",
+                   label="bst - linked list")
     axs[1, 1].grid()
 
     for ax in axs.flatten():
@@ -70,7 +70,8 @@ def best_fit(n, oper_data, oper_name, degree):
     polynomial = np.poly1d(coefficients)
 
     fname = oper_name + "_interp.png"
-    poly_str = "+".join(f"{c:.2e}x^{len(coefficients) - i}" for i, c in enumerate(coefficients, start=1))
+    poly_str = "+".join(f"{c:.2e}x^{len(coefficients) - i}" for i,
+                        c in enumerate(coefficients, start=1))
 
     plt.title(oper_name + " with interpolation.")
     plt.plot(n, oper_data, label="True data")
